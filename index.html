@@ -417,11 +417,11 @@ document.getElementById('playBtn').addEventListener('click',()=>{
   document.getElementById('pLbl').textContent=playing?'Pause':'Run streams';
   document.getElementById('sStatus').textContent=playing?'live':'sealed';
   if(playing){
-    timer=setInterval(()=>{
+    timer=setInterval(()=>{     
       tick++;
       emitEvent();
       render();
-    },800);
+    },10000);
   } else clearInterval(timer);
   render();
 });
