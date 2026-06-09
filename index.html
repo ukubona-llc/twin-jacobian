@@ -1,0 +1,442 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0efec;
+  --txt:#111;--txt2:#555;--txt3:#999;
+  --brd:rgba(0,0,0,0.12);--brd2:rgba(0,0,0,0.22);
+  --grn:#1d9e74;--amb:#c8921a;--red:#e24b4a;--blu:#2070b4;--pur:#534AB7;
+  --logo:url('https://abikesa.github.io/logos/assets/ukubona-light.png');
+  --sel:#3a7bd5;
+}
+.dark{
+  --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#222;
+  --txt:#f0f0f0;--txt2:#aaa;--txt3:#666;
+  --brd:rgba(255,255,255,0.12);--brd2:rgba(255,255,255,0.22);
+  --logo:url('https://abikesa.github.io/logos/assets/ukubona-dark.png');
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:13px;line-height:1.4;transition:background .3s,color .3s}
+.page{max-width:900px;margin:0 auto}
+
+.hdr{display:flex;align-items:center;gap:10px;padding:.75rem 1rem;border-bottom:1px solid var(--brd)}
+.logo{width:30px;height:30px;background:var(--logo) center/contain no-repeat;animation:spin 120s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hdr-c{flex:1;min-width:0}
+.hdr-t{font-size:13px;font-weight:500}
+.hdr-s{font-size:10px;color:var(--txt3);letter-spacing:.08em;text-transform:uppercase}
+.hdr-r{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.btn{border:1px solid var(--brd2);background:var(--bg2);color:var(--txt2);cursor:pointer;border-radius:6px;padding:4px 10px;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .15s}
+.btn:hover{background:var(--bg3)}
+.btn.round{border-radius:50%;width:28px;height:28px;padding:0;justify-content:center;font-size:13px}
+
+.body{padding:.75rem 1rem}
+
+/* Scalar */
+.s-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:3px}
+.s-row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.s-val{font-size:52px;font-weight:500;line-height:1;transition:color 2s}
+.s-verd{font-size:12px;font-weight:500;transition:color 2s}
+.s-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+.s-bar-w{height:4px;background:var(--bg3);border-radius:2px;margin:10px 0 1rem;overflow:hidden}
+.s-bar{height:100%;border-radius:2px;transition:width 2s,background 2s}
+
+/* Pipe row */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem}
+.pn{background:var(--bg2);border:1px solid var(--brd);border-radius:7px;padding:.6rem .75rem;text-align:center}
+.pn-t{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:3px}
+.pn-v{font-size:18px;font-weight:600}
+.pn-s{font-size:9px;color:var(--txt2);margin-top:2px}
+
+/* Labor breakdown */
+.labor-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:1rem}
+.lg-cell{background:var(--bg2);border-radius:5px;padding:5px 4px;text-align:center;border:1px solid var(--brd)}
+.lg-t{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3)}
+.lg-v{font-size:14px;font-weight:600;margin:2px 0}
+.lg-b{height:3px;border-radius:2px;margin-top:3px}
+
+/* 5x5 Jacobian */
+.sec{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin:.75rem 0 .5rem}
+.mx-wrap{overflow-x:auto;margin-bottom:1rem}
+.mx{border-collapse:collapse;width:100%;min-width:480px}
+.mx th{font-size:10px;color:var(--txt3);font-weight:400;text-align:center;padding:4px 3px;letter-spacing:.05em}
+.mx th.rh{text-align:right;padding-right:8px;min-width:28px}
+.mx td.rl{font-size:9px;color:var(--txt3);text-align:right;padding-right:8px;white-space:nowrap;min-width:28px}
+.cell{height:46px;border:1px solid var(--brd);text-align:center;cursor:pointer;transition:background .6s,color .6s,border-color .2s;position:relative;vertical-align:middle;min-width:70px}
+.cell:hover{border-color:var(--brd2);z-index:2}
+.cell-v{font-size:13px;font-weight:500;display:block;line-height:1}
+.cell-s{font-size:9px;display:block;margin-top:2px;opacity:.65}
+.cell.sel{border:2px solid var(--sel)!important;z-index:3}
+.diag{opacity:.2;cursor:default}
+
+/* Detail panel */
+.detail{background:var(--bg2);border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;border:1px solid var(--brd)}
+.dh{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:6px}
+.dt{font-size:12px;font-weight:500}
+.dv{font-size:18px;font-weight:500}
+.cwrap{position:relative;width:100%;height:130px}
+.up{color:#1d9e74}.dn{color:#e24b4a}
+
+/* Stream log */
+.stream{background:#111;color:#a8ff60;font-family:'DM Mono',monospace;border-radius:7px;padding:.6rem .75rem;height:160px;display:flex;flex-direction:column;margin-bottom:1rem;border:1px solid #333}
+.s-hdr{display:flex;justify-content:space-between;border-bottom:1px solid #333;padding-bottom:4px;margin-bottom:5px;font-size:9px;color:#666;letter-spacing:.06em;text-transform:uppercase}
+.s-log{font-size:10px;overflow-y:auto;flex:1;line-height:1.4;display:flex;flex-direction:column-reverse}
+.ll{margin-bottom:2px;word-break:break-all}
+.lt{color:#00e0ff;margin-right:5px}
+.ltag{padding:1px 3px;border-radius:2px;font-size:8px;font-weight:bold;margin-right:5px;color:#fff}
+
+.foot{padding:.5rem 1rem;border-top:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+.ft{font-size:9px;color:var(--txt3);letter-spacing:.06em;text-transform:uppercase}
+</style>
+
+<div class="page" id="page">
+<header class="hdr">
+  <div class="logo"></div>
+  <div class="hdr-c">
+    <div class="hdr-t">Ukubona · Organizational Twin</div>
+    <div class="hdr-s">Live 5×5 Jacobian · J(K,L,P,S,I)</div>
+  </div>
+  <div class="hdr-r">
+    <button class="btn" id="playBtn"><i class="ti ti-player-play" id="pIcon"></i><span id="pLbl">Run streams</span></button>
+    <span style="font-size:10px;color:var(--txt3)" id="tLbl">t = 0</span>
+    <button class="btn round" id="themeBtn" title="Toggle theme"><i class="ti ti-moon" id="thIcon"></i></button>
+  </div>
+</header>
+
+<main class="body">
+  <div class="s-lbl">Health scalar · S(t) — mean off-diagonal Jacobian coupling</div>
+  <div class="s-row">
+    <div class="s-val" id="sVal">0.00</div>
+    <div>
+      <div class="s-verd" id="sVerd">Initialising…</div>
+      <div class="s-sub" id="sSub">Computing streams…</div>
+    </div>
+  </div>
+  <div class="s-bar-w"><div class="s-bar" id="sBar" style="width:0%;background:#1d9e74"></div></div>
+
+  <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);margin-bottom:.4rem">Pipeline state · reduced from event streams</div>
+  <div class="pipe" id="pipe"></div>
+
+  <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);margin-bottom:.4rem">Labor decomposition · L = Σ L<sub>g</sub></div>
+  <div class="labor-grid" id="laborGrid"></div>
+
+  <div class="sec">Jacobian J(t) — ∂x_j/∂x_i · click any cell to inspect feedback loop</div>
+  <div class="mx-wrap">
+    <table class="mx" id="mx"></table>
+  </div>
+
+  <div class="detail" id="detail" style="display:none"></div>
+
+  <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);margin-bottom:.4rem">Append-only event stream · Topic: org.ukubona.telemetry.v2</div>
+  <div class="stream">
+    <div class="s-hdr"><span>Ledger</span><span id="sStatus">sealed</span></div>
+    <div class="s-log" id="sLog"></div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span class="ft">Ukubona LLC · Digital Twin Platform</span>
+  <span class="ft" id="fTick">t = 0 · drift paused</span>
+</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ─── State dimensions ─────────────────────────────────────
+const DIMS = ['K','L','P','S','I'];
+const DLBL = {
+  K:'Capital & infrastructure',
+  L:'Labor aggregate (Σ L_g)',
+  P:'Product stream (append-only)',
+  S:'Service loop (fidelity)',
+  I:'Information trace (KPIs, telemetry)'
+};
+
+// ─── Labor groups ─────────────────────────────────────────
+const LABOR_GROUPS = [
+  {id:'L0',name:'Founders',n:2,   color:'#e24b4a',w:2.0},
+  {id:'L1',name:'Staff',   n:150, color:'#1d9e74',w:1.0},
+  {id:'L2',name:'Vendors', n:20,  color:'#c8921a',w:0.7},
+  {id:'L3',name:'Bankers', n:8,   color:'#2070b4',w:0.6},
+  {id:'L4',name:'Auditors',n:6,   color:'#534AB7',w:0.8},
+  {id:'L5',name:'Regulators',n:5, color:'#0f6e56',w:0.9},
+  {id:'L6',name:'Customers',n:50, color:'#888780',w:1.2},
+];
+const TOTAL_AGENTS = LABOR_GROUPS.reduce((a,g)=>a+g.n,0);
+
+// ─── Event streams ─────────────────────────────────────────
+const streams = { P:[], S:[], I:[] };
+let tick=0, playing=false, timer=null, sel=null, dark=false, dChart=null;
+
+// ─── Noise function (same family as original) ──────────────
+function noise(b,a,t,f,ph=0){ return b + a*Math.sin(f*t+ph+b*9) + a*0.28*Math.cos(f*1.65*t+2.1+ph); }
+
+// ─── Stream-stat helpers (integrate append-only events) ───
+function streamMean(arr,window=20){
+  if(!arr.length) return 0.5;
+  const slice=arr.slice(-window);
+  return slice.reduce((s,e)=>s+e.delta,0)/slice.length;
+}
+function streamVar(arr,window=20){
+  if(arr.length<2) return 0.1;
+  const slice=arr.slice(-window);
+  const m=slice.reduce((s,e)=>s+e.delta,0)/slice.length;
+  const v=slice.reduce((s,e)=>s+(e.delta-m)**2,0)/slice.length;
+  return Math.sqrt(v);
+}
+
+// ─── Labor aggregate signal ───────────────────────────────
+function laborSignal(t){
+  return LABOR_GROUPS.reduce((s,g)=>{
+    const sig=noise(0.6,0.12,t,0.3+g.w*0.1,g.w);
+    return s + g.w*g.n*Math.max(0,Math.min(1,sig));
+  },0)/(LABOR_GROUPS.reduce((s,g)=>s+g.w*g.n,0));
+}
+
+// ─── 5×5 Jacobian ──────────────────────────────────────────
+// Rows = sources (∂x_j/∂x_i), cols = targets
+// Jacobian entries blend deterministic wave + stream statistics
+function buildMatrix(t){
+  // Raw baselines informed by economic logic:
+  // ∂L/∂K: more capital → more labor activation
+  // ∂P/∂L: more labor → more product
+  // ∂S/∂P: more product → more service capacity
+  // ∂I/∂S: service interactions → information generation
+  // ∂K/∂I: information → capital reallocation (cybernetic loop)
+  const pm = streamMean(streams.P);
+  const sm = streamMean(streams.S);
+  const im = streamMean(streams.I);
+  const pv = streamVar(streams.P);
+  const sv = streamVar(streams.S);
+  const lsig = laborSignal(t);
+
+  // 5×5: indices 0=K,1=L,2=P,3=S,4=I
+  const raw=[
+    // K  L  P  S  I
+    [0, noise(.62,.10,t,.35),  noise(.40,.13,t,.70),  noise(.30,.11,t,.55),  noise(.35,.14,t,.50) + im*0.2 ],// K row
+    [noise(.55,.12,t,.60),  0, noise(.72,.09,t,.30)+lsig*0.15, noise(.50,.14,t,.80),  noise(.40,.12,t,.65) ],// L row
+    [noise(.38,.13,t,.90)+pm*0.1,  noise(.68,.10,t,.40)+lsig*0.1,  0, noise(.82,.08,t,.20)+pm*0.1, noise(.45,.12,t,.75)+pv*0.3],// P row
+    [noise(.42,.11,t,.50),  noise(.58,.13,t,.70)+sm*0.1,  noise(.75,.09,t,.45)+sm*0.15,  0, noise(.70,.10,t,.35)+sv*0.2],// S row
+    [noise(.50,.13,t,.40)+im*0.25, noise(.44,.15,t,.60),  noise(.60,.11,t,.55),  noise(.65,.10,t,.30)+sm*0.1,  0], // I row
+  ];
+  return raw.map(r=>r.map(v=>Math.max(0,Math.min(1,v))));
+}
+
+// ─── Health scalar ─────────────────────────────────────────
+function scalar(m){
+  let s=0,n=0;
+  for(let i=0;i<5;i++) for(let j=0;j<5;j++) if(i!==j){s+=m[i][j];n++;}
+  return Math.min(.99,Math.max(.05,(s/n)*1.1+0.05));
+}
+
+function scol(s){return s>=.65?'#1d9e74':s>=.5?'#c8921a':'#e24b4a';}
+
+function ccLight(v){
+  if(v>=.7) return{bg:'#e1f5ee',tx:'#085041'};
+  if(v>=.5) return{bg:'#faeeda',tx:'#633806'};
+  if(v>=.3) return{bg:'#fbeaf0',tx:'#4b1528'};
+  return{bg:'#fcebeb',tx:'#501313'};
+}
+function ccDark(v){
+  if(v>=.7) return{bg:'#073d2e',tx:'#5eddb8'};
+  if(v>=.5) return{bg:'#3d2a00',tx:'#f0b429'};
+  if(v>=.3) return{bg:'#3d0e23',tx:'#f07ab0'};
+  return{bg:'#3d0808',tx:'#f07070'};
+}
+
+// ─── Stream-driven pipeline state ──────────────────────────
+let state={kapital:1.20,products:412,serviceFid:89.4,infoTrace:0.024};
+function pipelineRender(m){
+  const ps=[
+    {t:'Capital K(t)',v:'$'+state.kapital.toFixed(2)+'M',s:'Base infra pool'},
+    {t:'Labor L(t)',  v:TOTAL_AGENTS,s:`${LABOR_GROUPS.length} groups`},
+    {t:'Product P(t)',v:state.products,s:'Stream events'},
+    {t:'Service S(t)',v:state.serviceFid.toFixed(1)+'%',s:'Fidelity'},
+    {t:'Info I(t)',   v:state.infoTrace.toFixed(3),s:'Telemetry trace'},
+  ];
+  document.getElementById('pipe').innerHTML=ps.map(p=>`
+    <div class="pn"><div class="pn-t">${p.t}</div><div class="pn-v">${p.v}</div><div class="pn-s">${p.s}</div></div>
+  `).join('');
+}
+
+function laborRender(){
+  document.getElementById('laborGrid').innerHTML=LABOR_GROUPS.map(g=>`
+    <div class="lg-cell">
+      <div class="lg-t">${g.id}</div>
+      <div class="lg-v">${g.n}</div>
+      <div style="font-size:8px;color:var(--txt3)">${g.name}</div>
+      <div class="lg-b" style="background:${g.color}"></div>
+    </div>
+  `).join('');
+}
+
+// ─── Matrix render ──────────────────────────────────────────
+function renderMatrix(m){
+  let h=`<thead><tr><th class="rh">∂/∂</th>`;
+  DIMS.forEach(d=>{ h+=`<th>${d}</th>`; });
+  h+=`</tr></thead><tbody>`;
+  for(let i=0;i<5;i++){
+    h+=`<tr><td class="rl">${DIMS[i]}</td>`;
+    for(let j=0;j<5;j++){
+      const diag=i===j;
+      const v=m[i][j];
+      const c=diag?{bg:'transparent',tx:dark?'#444':'#ccc'}:(dark?ccDark(v):ccLight(v));
+      const isSel=sel&&sel[0]===i&&sel[1]===j;
+      h+=`<td class="cell${diag?' diag':''}${isSel?' sel':''}" data-r="${i}" data-c="${j}"
+            style="background:${c.bg};color:${c.tx}">
+            <span class="cell-v">${diag?'—':v.toFixed(2)}</span>
+            ${!diag?`<span class="cell-s">∂${DIMS[j]}/∂${DIMS[i]}</span>`:''}
+          </td>`;
+    }
+    h+=`</tr>`;
+  }
+  document.getElementById('mx').innerHTML=h+`</tbody>`;
+  document.querySelectorAll('.cell:not(.diag)').forEach(cell=>{
+    cell.addEventListener('click',()=>{
+      sel=[+cell.dataset.r,+cell.dataset.c];
+      renderMatrix(m);showDetail(sel[0],sel[1],m);
+    });
+  });
+}
+
+// ─── Historical Jacobian for sparkline ─────────────────────
+function hist(ri,ci,t){
+  const pts=[];
+  for(let k=Math.max(0,t-24);k<=t;k++){
+    pts.push({x:k, y:parseFloat(buildMatrix(k)[ri][ci].toFixed(3))});
+  }
+  return pts;
+}
+
+function showDetail(ri,ci,m){
+  const panel=document.getElementById('detail');
+  panel.style.display='block';
+  const h=hist(ri,ci,tick);
+  const cur=h[h.length-1].y;
+  const prev=h.length>1?h[h.length-2].y:cur;
+  const d=cur-prev;
+  const ds=d===0?'':`<span class="${d>0?'up':'dn'}">${d>0?'↑':'↓'}${Math.abs(d).toFixed(3)}</span>`;
+  panel.innerHTML=`
+    <div class="dh">
+      <div>
+        <div class="dt">∂${DIMS[ci]}/∂${DIMS[ri]} — how ${DIMS[ri]} drives ${DIMS[ci]}</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:2px">${DLBL[DIMS[ri]]} → ${DLBL[DIMS[ci]]}</div>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:6px"><div class="dv">${cur.toFixed(3)}</div>${ds}</div>
+    </div>
+    <div class="cwrap"><canvas id="dCanvas" role="img" aria-label="Jacobian cell time series">Sensitivity over time.</canvas></div>
+    <div style="font-size:10px;color:var(--txt3);margin-top:6px">High → strong coupling · Low → decoupled layers · Diagonal suppressed · Entries blend wave + stream statistics</div>
+  `;
+  if(dChart){dChart.destroy();dChart=null;}
+  const col=scol(cur);
+  const gc=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  const tc=dark?'#555':'#999';
+  dChart=new Chart(document.getElementById('dCanvas'),{
+    type:'line',
+    data:{labels:h.map(p=>p.x),datasets:[{
+      label:`∂${DIMS[ci]}/∂${DIMS[ri]}`,data:h.map(p=>p.y),
+      borderColor:col,backgroundColor:col+'22',fill:true,tension:0.35,
+      pointRadius:2,pointBackgroundColor:col,borderWidth:1.5
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:9},color:tc},grid:{color:gc}},
+        y:{min:0,max:1,ticks:{font:{size:9},color:tc},grid:{color:gc}}
+      }
+    }
+  });
+}
+
+// ─── Stream event emitters ──────────────────────────────────
+const STREAM_TEMPLATES=[
+  {type:'PRD',col:'#1d9e74',msg:i=>`Agent #${i} committed artifact → Product stream Δ+1`,stream:'P',delta:()=>0.05+Math.random()*0.08},
+  {type:'SRV',col:'#2070b4',msg:()=>`Service interaction resolved · fidelity Δ+${(0.1+Math.random()*0.3).toFixed(2)}%`,stream:'S',delta:()=>0.04+Math.random()*0.07},
+  {type:'INF',col:'#c8921a',msg:()=>`KPI telemetry event ingested → I-trace updated`,stream:'I',delta:()=>0.03+Math.random()*0.05},
+  {type:'GOV',col:'#e24b4a',msg:()=>`Regulatory constraint parsed → loss variance damped`,stream:'I',delta:()=>-0.02-Math.random()*0.03},
+  {type:'KAP',col:'#534AB7',msg:()=>`Capital reallocation signal from I-trace → K-pool update`,stream:null,delta:()=>0},
+];
+
+function emitEvent(){
+  const tpl=STREAM_TEMPLATES[Math.floor(Math.random()*STREAM_TEMPLATES.length)];
+  const agentId=Math.floor(Math.random()*TOTAL_AGENTS);
+  const delta=tpl.delta();
+
+  // Append to stream
+  if(tpl.stream){
+    streams[tpl.stream].push({tick,delta,ts:Date.now()});
+  }
+
+  // Update pipeline state
+  if(tpl.type==='PRD'){state.products++;}
+  if(tpl.type==='SRV'){state.serviceFid=Math.min(100,state.serviceFid+delta);}
+  if(tpl.type==='INF'||tpl.type==='GOV'){state.infoTrace=Math.max(0.001,state.infoTrace+delta*0.1);}
+  if(tpl.type==='KAP'){state.kapital+=0.01*(Math.random()-0.3);}
+
+  appendLog(tpl.type,tpl.col,tpl.msg(agentId));
+}
+
+function appendLog(type,col,msg){
+  const log=document.getElementById('sLog');
+  const line=document.createElement('div');
+  line.className='ll';
+  line.innerHTML=`<span class="lt">[t=${tick}]</span><span class="ltag" style="background:${col}">${type}</span>${msg}`;
+  log.appendChild(line);
+  if(log.childNodes.length>60) log.removeChild(log.firstChild);
+}
+
+// ─── Main render ────────────────────────────────────────────
+function render(){
+  const m=buildMatrix(tick);
+  const s=scalar(m);
+  const c=scol(s);
+  document.getElementById('sVal').textContent=s.toFixed(2);
+  document.getElementById('sVal').style.color=c;
+  document.getElementById('sVerd').textContent=
+    s>=.65?'System healthy — decision gate open':
+    s>=.5?'Variable — monitor activation gate':
+    'S < 0.50 — intervention required';
+  document.getElementById('sVerd').style.color=c;
+  document.getElementById('sSub').textContent=
+    s>=.5?'S > 0.50 · no intervention required':'S < 0.50 · escalate';
+  document.getElementById('sBar').style.width=(s*100).toFixed(1)+'%';
+  document.getElementById('sBar').style.background=c;
+  document.getElementById('tLbl').textContent='t = '+tick;
+  document.getElementById('fTick').textContent='t = '+tick+(playing?' · streaming':' · paused');
+  pipelineRender(m);
+  renderMatrix(m);
+  if(sel) showDetail(sel[0],sel[1],m);
+}
+
+// ─── Controls ───────────────────────────────────────────────
+document.getElementById('playBtn').addEventListener('click',()=>{
+  playing=!playing;
+  document.getElementById('pIcon').className=playing?'ti ti-player-pause':'ti ti-player-play';
+  document.getElementById('pLbl').textContent=playing?'Pause':'Run streams';
+  document.getElementById('sStatus').textContent=playing?'live':'sealed';
+  if(playing){
+    timer=setInterval(()=>{
+      tick++;
+      emitEvent();
+      render();
+    },800);
+  } else clearInterval(timer);
+  render();
+});
+
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  dark=!dark;
+  document.getElementById('page').classList.toggle('dark',dark);
+  document.body.classList.toggle('dark',dark);
+  document.getElementById('thIcon').className=dark?'ti ti-sun':'ti ti-moon';
+  render();
+});
+
+// ─── Boot ───────────────────────────────────────────────────
+laborRender();
+appendLog('INF','#c8921a','Organisational twin initialised · awaiting stream events');
+appendLog('GOV','#e24b4a','Regulatory baseline loaded · audit consensus verified');
+render();
+</script>
